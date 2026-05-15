@@ -1,0 +1,143 @@
+#!/bin/bash
+
+clear
+set -e
+tabs -2
+
+EXE_NAME="aido"
+MAIN_FILE="src/aido.go"
+
+BUILD_DIR="bin"
+TEST_TIMEOUT="2s"
+BUILD_FLAGS=""
+#BUILD_FLAGS=-gcflags -m -ldflags "-s -w"
+
+printUsage() {
+  println "Usage:"
+  println "\t" "./godo [help]" "\t" "Print usage"
+  println "\t" "./godo doc[s]" "\t" "Fire up documentation server"
+  println "\t" "./godo clean " "\t" "Clean Go caches and build folder"
+  println "\t" "./godo fmt   " "\t" "fmt"
+  println "\t" "./godo test  " "\t" "fmt -> build -> test -> vet"
+  println "\t" "./godo run   " "\t" "fmt -> build -> test -> vet -> run"
+  println "\t" "./godo dev   " "\t" "fmt -> build -> test -> vet -> run (dev scroll)"
+}
+
+println() {
+  for s in "$@"
+  do
+    printf "$s"
+  done
+  printf "\\n"
+}
+
+goDoc() {
+  doc_port=":6000"
+
+  godoc -http=${doc_port}
+}
+
+clean() {
+  println "Clean..."
+  rm -r -f "$BUILD_DIR"
+}
+
+setup() {
+  println "Setup..."
+  mkdir -p "$BUILD_DIR"
+}
+
+goClean() {
+  println "Deep clean..."
+  go clean -cache -testcache
+}
+
+goBuild() {
+  println "Build..."
+  go build -o "$BUILD_DIR/$EXE_NAME" $BUILD_FLAGS $MAIN_FILE
+}
+
+goFmt() {
+  println "Format..."
+  go fmt ./...
+}
+
+goTest() {
+  println "Test..."
+  go test ./... -timeout $TEST_TIMEOUT
+}
+
+goVet() {
+  println "Vet..."
+  go vet ./...
+}
+
+goExe() {
+  println "Run..."
+  "$BUILD_DIR/$EXE_NAME" $@
+}
+
+if [[ "$1" == "" || "$1" == "help" ]]; then
+  printUsage
+  exit 0
+fi
+
+if [[ "$1" == "doc" || "$1" == "docs" ]]; then
+  goDoc
+  exit 0
+fi
+
+if [[ "$1" == "clean" ]]; then
+  clean
+  goClean
+  exit 0
+fi
+
+if [[ "$1" == "fmt" ]]; then
+  clean
+  goFmt
+  exit 0
+fi
+
+if [[ "$1" == "test" ]]; then
+  clean
+  setup
+  goBuild
+  goFmt
+  goTest
+  goVet
+  exit 0
+fi
+
+if [[ "$1" == "run" ]]; then
+  clean
+  setup
+  goBuild
+  goFmt
+  goTest
+  goVet
+
+  shift 1
+  goExe $@
+
+  println
+  exit 0
+fi
+
+if [[ "$1" == "dev" ]]; then
+  clean
+  setup
+  goBuild
+  goFmt
+  goTest
+  goVet
+
+  goExe "./src/dev.ff"
+
+  println
+  exit 0
+fi
+
+println "I don't understand the option '$1'."
+printUsage
+exit 1
