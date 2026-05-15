@@ -1,0 +1,45 @@
+
+NEWLINE = ? "\n" ?
+
+UPPERCASE_LETTER = "A" | "B" | "C" | "D"
+	| "E" | "F" | "G" | "H"
+	| "I" | "J" | "K" | "L"
+	| "M" | "N" | "O" | "P"
+	| "Q" | "R" | "S" | "T"
+	| "U" | "V" | "W" | "X"
+	| "Y" | "Z"
+LOWERCASE_LETTER = "a" | "b" | "c" | "d"
+	| "e" | "f" | "g" | "h"
+	| "i" | "j" | "k" | "l"
+	| "m" | "n" | "o" | "p"
+	| "q" | "r" | "s" | "t"
+	| "u" | "v" | "w" | "x"
+	| "y" | "z"
+LETTER = UPPERCASE_LETTER | LOWERCASE_LETTER
+
+DIGIT = "0"
+	| "1" | "2" | "3"
+	| "4" | "5" | "6"
+	| "7" | "8" | "9"
+INTEGER = DIGIT { DIGIT }
+FLOAT = INTEGER [ "." INTEGER ]
+
+LEADING_VARIABLE_CHARACTER = LETTER | "_"
+TRAILING_VARIABLE_CHAR = LEADING_VARIABLE_CHARACTER | DIGIT
+VARIABLE_NAME = LEADING_VARIABLE_CHARACTER
+	{ TRAILING_VARIABLE_CHAR }
+
+VALUE = INTEGER | FLOAT | VARIABLE_NAME
+
+VARIABLE_INITIALISER = VARIABLE_NAME ":=" VALUE
+VARIABLE_ASSIGNMENT = VARIABLE_NAME "=" VALUE
+
+CSV_LIST = [ VALUE { "," VALUE } ]
+FUNCTION_PARAMETERS = "(" CSV_LIST ")"
+FUNCTION_CALL = VARIABLE_NAME FUNCTION_PARAMETERS
+
+STATEMENT = VARIABLE_INITIALISER
+	| VARIABLE_ASSIGNMENT
+	| FUNCTION_CALL
+
+PROGRAM = { STATEMENT } NEWLINE
